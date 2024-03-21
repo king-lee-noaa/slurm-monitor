@@ -1,2 +1,2 @@
-install slurm
-https://drtailor.medium.com/how-to-setup-slurm-on-ubuntu-20-04-for-single-node-work-scheduling-6cc909574365
+creating a lambda layer
+https://www.keyq.cloud/en/blog/creating-an-aws-lambda-layer-for-python-requests-module
