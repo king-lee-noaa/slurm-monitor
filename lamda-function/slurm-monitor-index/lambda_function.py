@@ -40,7 +40,7 @@ def lambda_handler(event, context):
     for message in event['Records']:
         process_message(sm_context, message)
 
-    openSearch["client"].close()    
+    openSearch["client"].close()
     print("{} Done: {}".format(datetime.now(), stat))
 
 
@@ -79,6 +79,11 @@ def process_message(sm_context, message):
                     do_indexing(sm_context, jobs)
                     sm_context["stat"]["message_processed"] += 1
 
+                case "squeue":
+                    jobs = parse_squeue(message["body"], misc)
+                    do_indexing(sm_context, jobs)
+                    sm_context["stat"]["message_processed"] += 1
+
                 case _:
                     print("{} Unable to process capture_src: {}".format(datetime.now(), capture_src))
 
@@ -94,6 +99,7 @@ def parse_scontrol_show_job(body, misc):
     jobs = []
     job = {}
 
+    stopList = ["Unknown", "None", "(null)", ""]
     pattern = re.compile(r"(.+?=(?:domain users.*?|.*?))\s+")
     for match in pattern.finditer(body):
         item = re.split("=", match.group(1), 1)
@@ -106,7 +112,6 @@ def parse_scontrol_show_job(body, misc):
 
         match len(item):
             case 2:
-                stopList = ["Unknown", "None", "(null)", ""]
                 if item[1] not in stopList:
                     job[item[0]] = item[1]
 
@@ -121,6 +126,33 @@ def parse_scontrol_show_job(body, misc):
         job['capture_src'] = misc["capture_src"]
         job['sqs_sent_ts'] = misc["sqs_sent_ts"]
         jobs.append(job)
+
+    return jobs
+
+
+###############################################################################
+# convert message body to dictionary
+###############################################################################
+def parse_squeue(body, misc):
+    jobs = []
+    job = {}
+
+    stopList = ["Unknown", "None", "(null)", ""]
+    pattern = re.compile(r"(.+?)(?:\n+|$)")
+    for i, match in enumerate(pattern.finditer(body)):
+        if i == 0:
+            header = re.split(r"\|", match.group(1))
+        else:
+            items = re.split(r"\|", match.group(1))
+            for j, item in enumerate(items):
+                if item not in stopList:
+                    job[header[j]] = item
+
+            job['capture_ts'] = misc["capture_ts"]
+            job['capture_src'] = misc["capture_src"]
+            job['sqs_sent_ts'] = misc["sqs_sent_ts"]
+            jobs.append(job)
+            job = {}
 
     return jobs
 

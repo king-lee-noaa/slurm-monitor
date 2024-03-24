@@ -23,12 +23,12 @@ for i in "${!squeue_output[@]}"; do
         header="${squeue_output[i]}"
     elif [ $(((i - 1) % 10)) -eq 9 ]; then
         body+=$'\n'"${squeue_output[i]}"
-#	echo "$header$body"
+#    echo "$header$body"
         response=$(aws sqs send-message --queue-url $queue_url --message-body "$header$body" --message-attributes "$msg_attributes")
-	echo $response
-	body=""
+    echo $response
+    body=""
     else
-	body+=$'\n'"${squeue_output[i]}"
+    body+=$'\n'"${squeue_output[i]}"
     fi
 done
 

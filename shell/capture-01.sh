@@ -27,8 +27,8 @@ if [[ $status != "No jobs in the system"* ]]; then
     jobs=()
     while [[ $status_str ]];  
     do
-	# add 1 job to array
-	jobs+=( "${status_str%%"$delimiter"*}" )
+    # add 1 job to array
+    jobs+=( "${status_str%%"$delimiter"*}" )
 
         # remove first job from status_str	
         status_str=${status_str#*"$delimiter"} 
@@ -42,10 +42,10 @@ if [[ $status != "No jobs in the system"* ]]; then
     for i in "${!jobs[@]}"
     do
         body+="$delimiter${jobs[i]}"
-	if [ $((i % 10)) -eq 9 ]; then
+    if [ $((i % 10)) -eq 9 ]; then
             response=$(aws sqs send-message --queue-url $queue_url --message-body "$body" --message-attributes "$msg_attributes")
             echo $response
-	    body=""
+        body=""
         fi
     done
 
